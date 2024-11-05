@@ -1,0 +1,19 @@
+1) db.createCollection("studentsData")
+ 
+2) db.studentsData.insertMany([ {"name":"Daksh","age":20,"grade":"A"} , {"name":"Avikam","age":21,"grade":"A"} ,       {"name":"Ashish","age":19,"grade":"O"}])
+
+3) db.studentsData.find()
+
+4) db.studentsData.find({ "age": { $gt: 18 } })
+
+5) db.studentsData.insertOne({"name":"John","roll":100})
+
+6) db.studentsData.updateOne({name:"Daksh"},{$set:{grade:"O"}})
+
+7) db.studentsData.find()
+
+8) db.studentsData.deleteOne({name:"Daksh"})
+
+9) db.studentsData.find().sort({name:1})
+
+10) db.studentsData.countDocuments({grade:"B"})
