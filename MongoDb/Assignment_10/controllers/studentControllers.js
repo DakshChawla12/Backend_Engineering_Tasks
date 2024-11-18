@@ -1,13 +1,29 @@
 import studentModel from '../models/studentModel.js';
 
-const getStudentsData = async (req,res) =>{
+const getStudentsData = async (req, res) => {
     try {
-        const studentsData = await studentModel.find();
-        res.json({success:true,studentsData});
+        const { name, page = 1 } = req.query;
+        const limit = 5;
+        const skip = (page - 1) * limit;
+
+        let studentsData;
+        const query = name ? { name } : {};
+
+        studentsData = await studentModel.find(query).skip(skip).limit(limit).populate('courses');
+
+        if (!studentsData || studentsData.length === 0) {
+            return res.json({ success: false, message: `No students found matching the criteria` });
+        }
+        return res.json({
+            success: true,
+            studentsData,
+        });
     } catch (error) {
-        res.json({success:false,message:"error fetching data"});
+        return res.json({ success: false, message: "Error fetching data" });
     }
-}
+};
+
+
 
 const addStudent = async(req,res) => {
     try {
@@ -27,7 +43,7 @@ const addStudent = async(req,res) => {
 const getByID = async(req,res) => {
     try {
         const {id} = req.params;
-        const student = await studentModel.findById(id);
+        const student = await studentModel.findById(id).populate('courses');
         if(!student) return res.json({success:false,message:"invalid id"});
         res.json({success:true,student});
     } catch (error) {
@@ -44,17 +60,40 @@ const updateStudentData = async (req, res) => {
         const updatedStudent = await studentModel.findByIdAndUpdate(
             id, 
             updateData, 
+            {new:true}
         );
         if (!updatedStudent) {
             return res.status(404).json({ message: "Student not found" });
         }
-        res.status(200).json({success:true,updatedStudent});
+        res.json({success:true,updatedStudent});
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Server error", error: error.message });
+        res.json({ message: "Server error", error: error.message });
     }
 };
+
+const enrollStudent = async(req,res) => {
+    try {
+        const {id,courseID} = req.params;
+        if(!id || !courseID){
+            return res.json({success:false,message:"please provide complete details"});
+        }
+        const student = await studentModel.findById(id);
+        if(!student){
+            return res.json({success:false,message:"invalid student ID"});
+        }
+        const isEnrolled = student.courses.includes(courseID);
+        if (isEnrolled) {
+            return res.status(400).json({ success: false, message: "Student already enrolled in this course" });
+        }
+        student.courses.push(courseID);
+        await student.save();
+        res.json({success:true,message:"student successfully enrolled"});
+    } catch (error) {
+        res.json({ message: "Server error", error: error.message });
+    }
+}
 
 const deleteStudent = async(req,res) => {
     try {
@@ -66,4 +105,4 @@ const deleteStudent = async(req,res) => {
     }
 }
 
-export {getStudentsData,getByID,addStudent,updateStudentData,deleteStudent};
+export {getStudentsData,getByID,addStudent,updateStudentData,deleteStudent,enrollStudent};
