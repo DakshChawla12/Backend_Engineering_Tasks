@@ -27,7 +27,7 @@ const addStudent = async(req,res) => {
 const getByID = async(req,res) => {
     try {
         const {id} = req.params;
-        const student = studentModel.findById(id);
+        const student = await studentModel.findById(id);
         if(!student) return res.json({success:false,message:"invalid id"});
         res.json({success:true,student});
     } catch (error) {
@@ -44,7 +44,6 @@ const updateStudentData = async (req, res) => {
         const updatedStudent = await studentModel.findByIdAndUpdate(
             id, 
             updateData, 
-            {new:true}
         );
         if (!updatedStudent) {
             return res.status(404).json({ message: "Student not found" });
